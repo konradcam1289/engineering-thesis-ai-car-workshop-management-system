@@ -1,0 +1,157 @@
+import React, { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import {
+    FaPhoneAlt,
+    FaEnvelope,
+    FaMapMarkerAlt,
+    FaClock,
+    FaTools,
+    FaCalendarAlt
+} from "react-icons/fa";
+
+const Contact: React.FC = () => {
+    const [searchParams] = useSearchParams();
+    const subjectParam = searchParams.get("subject");
+
+    const [formData, setFormData] = useState({
+        name: "",
+        email: "",
+        subject: subjectParam || "",
+        message: ""
+    });
+
+    useEffect(() => {
+        if (subjectParam) {
+            setFormData(prev => ({ ...prev, subject: subjectParam }));
+        }
+    }, [subjectParam]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        try {
+            const response = await fetch("http://localhost:8080/api/contact", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(formData)
+            });
+
+            if (response.ok) {
+                alert("Wiadomość została wysłana!");
+                setFormData({ name: "", email: "", subject: "", message: "" });
+            } else {
+                const errorText = await response.text();
+                alert("Wystąpił błąd: " + errorText);
+            }
+        } catch (error) {
+            console.error("Błąd:", error);
+            alert("Nie udało się połączyć z serwerem.");
+        }
+    };
+
+    return (
+        <div className="max-w-5xl mx-auto mt-20 p-8 bg-white rounded-xl shadow-xl">
+            <h1 className="text-3xl font-bold text-blue-700 mb-8 text-center flex items-center justify-center gap-2">
+                <FaTools /> Kontakt z warsztatem
+            </h1>
+
+            {subjectParam && subjectParam.toLowerCase().includes("edycja") && (
+                <div className="bg-yellow-100 border-l-4 border-yellow-600 text-yellow-800 p-4 mb-8 rounded flex items-start gap-2">
+                    <FaCalendarAlt className="text-yellow-600 mt-1" />
+                    <div>
+                        <strong>Edycja rezerwacji:</strong><br />
+                        Zmiana terminu wizyty jest możliwa <strong>wyłącznie</strong> poprzez kontakt z warsztatem.
+                        Prosimy opisać, czego dotyczy zmiana i podać numer rezerwacji.
+                    </div>
+                </div>
+            )}
+
+            <div className="grid md:grid-cols-2 gap-10">
+                <div className="space-y-5">
+                    <div>
+                        <h2 className="text-xl font-semibold mb-2 flex items-center gap-2">
+                            <FaMapMarkerAlt /> Adres warsztatu:
+                        </h2>
+                        <p>AutoWorkshop Sp. z o.o.</p>
+                        <p>ul. Mechaników 123</p>
+                        <p>00-123 Warszawa</p>
+                    </div>
+                    <div>
+                        <h2 className="text-xl font-semibold mb-2 flex items-center gap-2">
+                            <FaPhoneAlt /> Telefon:
+                        </h2>
+                        <p>+48 123 456 789</p>
+                    </div>
+                    <div>
+                        <h2 className="text-xl font-semibold mb-2 flex items-center gap-2">
+                            <FaEnvelope /> Email:
+                        </h2>
+                        <p>carworkshop1289@gmail.com</p>
+                    </div>
+                    <div>
+                        <h2 className="text-xl font-semibold mb-2 flex items-center gap-2">
+                            <FaClock /> Godziny otwarcia:
+                        </h2>
+                        <p>Poniedziałek - Piątek: 8:00 - 18:00</p>
+                        <p>Sobota: 9:00 - 14:00</p>
+                        <p>Niedziela: nieczynne</p>
+                    </div>
+                </div>
+
+                <div>
+                    <h2 className="text-xl font-semibold mb-4">Formularz kontaktowy:</h2>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <input
+                            type="text"
+                            name="name"
+                            placeholder="Imię i nazwisko"
+                            value={formData.name}
+                            onChange={handleChange}
+                            className="w-full border p-3 rounded-lg shadow"
+                            required
+                        />
+                        <input
+                            type="email"
+                            name="email"
+                            placeholder="Adres email"
+                            value={formData.email}
+                            onChange={handleChange}
+                            className="w-full border p-3 rounded-lg shadow"
+                            required
+                        />
+                        <input
+                            type="text"
+                            name="subject"
+                            placeholder="Temat"
+                            value={formData.subject}
+                            onChange={handleChange}
+                            className="w-full border p-3 rounded-lg shadow"
+                        />
+                        <textarea
+                            name="message"
+                            placeholder="Treść wiadomości"
+                            value={formData.message}
+                            onChange={handleChange}
+                            className="w-full border p-3 rounded-lg shadow h-32"
+                            required
+                        />
+                        <button
+                            type="submit"
+                            className="w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg shadow"
+                        >
+                            Wyślij wiadomość
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default Contact;
